@@ -106,9 +106,16 @@ const DragDropGrid = () => {
       const adjacentCard = updatedCards.find(c => c.position === adjacentPosition && c.width === 1);
       if (adjacentCard) {
         const newPosition = findNextAvailablePosition(adjacentPosition + 1, adjacentCard.id);
-        updatedCards = updatedCards.map(c =>
-          c.id === adjacentCard.id ? { ...c, position: newPosition } : c
-        );
+        if (isPositionOccupied(newPosition)) {
+          // Ensure no overlapping during move
+          updatedCards = updatedCards.map(c =>
+            c.id === adjacentCard.id ? { ...c, position: findNextAvailablePosition(newPosition + 1) } : c
+          );
+        } else {
+          updatedCards = updatedCards.map(c =>
+            c.id === adjacentCard.id ? { ...c, position: newPosition } : c
+          );
+        }
       }
 
       // Set the expanded card's new position
@@ -145,15 +152,28 @@ const DragDropGrid = () => {
       if (targetCard) {
         if (targetCard.width === 1) {
           const newPosition = findNextAvailablePosition(targetPosition + 1);
-          return prevCards.map(c => {
-            if (c.id === draggedId) {
-              return { ...c, position: targetPosition };
-            }
-            if (c.id === targetCard.id) {
-              return { ...c, position: newPosition };
-            }
-            return c;
-          });
+          if (isPositionOccupied(newPosition)) {
+            // Ensure no overlapping during move
+            return prevCards.map(c => {
+              if (c.id === draggedId) {
+                return { ...c, position: targetPosition };
+              }
+              if (c.id === targetCard.id) {
+                return { ...c, position: findNextAvailablePosition(newPosition + 1) };
+              }
+              return c;
+            });
+          } else {
+            return prevCards.map(c => {
+              if (c.id === draggedId) {
+                return { ...c, position: targetPosition };
+              }
+              if (c.id === targetCard.id) {
+                return { ...c, position: newPosition };
+              }
+              return c;
+            });
+          }
         } else if (targetCard.width === 2) {
           // If the target card is expanded, find a new available position for the dragged card
           const newPosition = findNextAvailablePosition(targetPosition + 2);
