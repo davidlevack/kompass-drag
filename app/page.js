@@ -1,9 +1,10 @@
-import DragDropGrid from './components/DragDropGrid';
+'use client'
+import DragDropGrid from './components/DragDropGrid'  // this path is correct
 
 export default function Home() {
   return (
-    <main>
+    <main className="min-h-screen"> 
       <DragDropGrid />
     </main>
-  );
+  )
 }
