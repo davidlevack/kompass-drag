@@ -100,15 +100,17 @@ const DragDropGrid = () => {
         card.position + 1;
 
       if (!isPositionOccupied(adjacentPosition)) {
-        return prevCards.map(c =>
-          c.id === cardId ? { ...c, width: 2, position: isInRightColumn ? adjacentPosition : c.position } : c
-        );
+        // Move the card in the adjacent position if it exists
+        return prevCards.map(c => {
+          if (c.position === adjacentPosition && c.width === 1) {
+            const newPosition = findNextAvailablePosition(adjacentPosition + 1, c.id);
+            return { ...c, position: newPosition };
+          }
+          return c.id === cardId ? { ...c, width: 2, position: isInRightColumn ? adjacentPosition : c.position } : c;
+        });
       }
 
-      const newPosition = findNextAvailablePosition(card.position + 2);
-      return prevCards.map(c =>
-        c.id === cardId ? { ...c, width: 2, position: newPosition } : c
-      );
+      return prevCards;
     });
   };
 
