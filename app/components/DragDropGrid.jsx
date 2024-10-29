@@ -135,11 +135,26 @@ const DragDropGrid = () => {
       if (!draggedCard || draggedCard.position === targetPosition) return prevCards;
 
       // Check if target position is occupied
-      if (isPositionOccupied(targetPosition, draggedId)) {
-        const newPosition = findNextAvailablePosition(targetPosition + 1);
-        return prevCards.map(c =>
-          c.id === draggedId ? { ...c, position: newPosition } : c
-        );
+      const targetCard = prevCards.find(c => c.position === targetPosition);
+      if (targetCard) {
+        if (targetCard.width === 1) {
+          const newPosition = findNextAvailablePosition(targetPosition + 1);
+          return prevCards.map(c => {
+            if (c.id === draggedId) {
+              return { ...c, position: targetPosition };
+            }
+            if (c.id === targetCard.id) {
+              return { ...c, position: newPosition };
+            }
+            return c;
+          });
+        } else if (targetCard.width === 2) {
+          // If the target card is expanded, find a new available position for the dragged card
+          const newPosition = findNextAvailablePosition(targetPosition + 2);
+          return prevCards.map(c =>
+            c.id === draggedId ? { ...c, position: newPosition } : c
+          );
+        }
       }
 
       // No card in target position
