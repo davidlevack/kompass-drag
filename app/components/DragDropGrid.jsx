@@ -101,13 +101,18 @@ const DragDropGrid = () => {
 
       if (!isPositionOccupied(adjacentPosition)) {
         // Move the card in the adjacent position if it exists
-        return prevCards.map(c => {
+        const updatedCards = prevCards.map(c => {
           if (c.position === adjacentPosition && c.width === 1) {
             const newPosition = findNextAvailablePosition(adjacentPosition + 1, c.id);
             return { ...c, position: newPosition };
           }
-          return c.id === cardId ? { ...c, width: 2, position: isInRightColumn ? adjacentPosition : c.position } : c;
+          return c;
         });
+
+        // Set the expanded card's new position
+        return updatedCards.map(c =>
+          c.id === cardId ? { ...c, width: 2, position: isInRightColumn ? adjacentPosition : c.position } : c
+        );
       }
 
       return prevCards;
