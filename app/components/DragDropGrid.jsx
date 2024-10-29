@@ -74,13 +74,11 @@ const DragDropGrid = () => {
   };
 
   const findNextAvailablePosition = (startPosition, excludeCardId = null) => {
-    for (let i = 0; i < 6; i++) {
-      const position = (startPosition + i) % 6;
-      if (!isPositionOccupied(position, excludeCardId)) {
-        return position;
-      }
+    let position = startPosition;
+    while (isPositionOccupied(position, excludeCardId)) {
+      position++;
     }
-    return startPosition;
+    return position;
   };
 
   const handleExpand = (cardId) => {
@@ -106,16 +104,9 @@ const DragDropGrid = () => {
       const adjacentCard = updatedCards.find(c => c.position === adjacentPosition && c.width === 1);
       if (adjacentCard) {
         const newPosition = findNextAvailablePosition(adjacentPosition + 1, adjacentCard.id);
-        if (isPositionOccupied(newPosition)) {
-          // Ensure no overlapping during move
-          updatedCards = updatedCards.map(c =>
-            c.id === adjacentCard.id ? { ...c, position: findNextAvailablePosition(newPosition + 1) } : c
-          );
-        } else {
-          updatedCards = updatedCards.map(c =>
-            c.id === adjacentCard.id ? { ...c, position: newPosition } : c
-          );
-        }
+        updatedCards = updatedCards.map(c =>
+          c.id === adjacentCard.id ? { ...c, position: newPosition } : c
+        );
       }
 
       // Set the expanded card's new position
@@ -152,28 +143,15 @@ const DragDropGrid = () => {
       if (targetCard) {
         if (targetCard.width === 1) {
           const newPosition = findNextAvailablePosition(targetPosition + 1);
-          if (isPositionOccupied(newPosition)) {
-            // Ensure no overlapping during move
-            return prevCards.map(c => {
-              if (c.id === draggedId) {
-                return { ...c, position: targetPosition };
-              }
-              if (c.id === targetCard.id) {
-                return { ...c, position: findNextAvailablePosition(newPosition + 1) };
-              }
-              return c;
-            });
-          } else {
-            return prevCards.map(c => {
-              if (c.id === draggedId) {
-                return { ...c, position: targetPosition };
-              }
-              if (c.id === targetCard.id) {
-                return { ...c, position: newPosition };
-              }
-              return c;
-            });
-          }
+          return prevCards.map(c => {
+            if (c.id === draggedId) {
+              return { ...c, position: targetPosition };
+            }
+            if (c.id === targetCard.id) {
+              return { ...c, position: newPosition };
+            }
+            return c;
+          });
         } else if (targetCard.width === 2) {
           // If the target card is expanded, find a new available position for the dragged card
           const newPosition = findNextAvailablePosition(targetPosition + 2);
@@ -272,7 +250,7 @@ const DragDropGrid = () => {
 
       <div className="flex-1 p-8 relative">
         <div className="grid grid-cols-2 gap-4 bg-gray-100 p-4 rounded-xl">
-          {[0, 1, 2, 3, 4, 5].map(position => renderPosition(position))}
+          {Array.from({ length: cards.length + 4 }, (_, index) => renderPosition(index))}
         </div>
 
         {isDragging && (
