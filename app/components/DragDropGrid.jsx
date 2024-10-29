@@ -73,16 +73,6 @@ const DragDropGrid = () => {
     });
   };
 
-  const findNextAvailableDoublePosition = (startPosition) => {
-    for (let i = 0; i < 5; i += 2) {
-      const position = (Math.floor((startPosition + i) / 2) * 2) % 6;
-      if (!isPositionOccupied(position) && !isPositionOccupied(position + 1)) {
-        return position;
-      }
-    }
-    return startPosition;
-  };
-
   const findNextAvailablePosition = (startPosition, excludeCardId = null) => {
     for (let i = 0; i < 6; i++) {
       const position = (startPosition + i) % 6;
@@ -109,40 +99,13 @@ const DragDropGrid = () => {
         card.position - 1 : 
         card.position + 1;
 
-      const cardInAdjacentPosition = prevCards.find(c => c.position === adjacentPosition);
-      
-      if (cardInAdjacentPosition) {
-        const newPosition = findNextAvailablePosition(
-          adjacentPosition + 1, 
-          cardInAdjacentPosition.id
+      if (!isPositionOccupied(adjacentPosition)) {
+        return prevCards.map(c =>
+          c.id === cardId ? { ...c, width: 2, position: isInRightColumn ? adjacentPosition : c.position } : c
         );
-        
-        return prevCards.map(c => {
-          if (c.id === cardId) {
-            return { 
-              ...c, 
-              width: 2,
-              position: isInRightColumn ? adjacentPosition : c.position
-            };
-          }
-          if (c.id === cardInAdjacentPosition.id) {
-            const { x, y } = positionToCoords(newPosition);
-            return { ...c, position: newPosition, x, y };
-          }
-          return c;
-        });
       }
 
-      return prevCards.map(c => {
-        if (c.id === cardId) {
-          return { 
-            ...c, 
-            width: 2,
-            position: isInRightColumn ? adjacentPosition : c.position
-          };
-        }
-        return c;
-      });
+      return prevCards;
     });
   };
 
@@ -158,9 +121,7 @@ const DragDropGrid = () => {
         const newCard = {
           ...sourceCard,
           position: targetPosition,
-          width: 1,
-          x: positionToCoords(targetPosition).x,
-          y: positionToCoords(targetPosition).y
+          width: 1
         };
 
         return [...prevCards, newCard];
@@ -170,75 +131,12 @@ const DragDropGrid = () => {
       const draggedCard = prevCards.find(c => c.id === draggedId);
       if (!draggedCard || draggedCard.position === targetPosition) return prevCards;
 
-      // Check if we're dealing with expanded cards
-      const expandedCardAtTarget = prevCards.find(c => 
-        c.width === 2 && (c.position === targetPosition || c.position === targetPosition - 1)
-      );
-
-      // If dragged card is expanded and target position is even (start of row)
-      if (draggedCard.width === 2 && targetPosition % 2 === 0 && !expandedCardAtTarget) {
-        const cardInNextPosition = prevCards.find(c => 
-          c.id !== draggedId && (c.position === targetPosition || c.position === targetPosition + 1)
-        );
-        
-        if (cardInNextPosition) {
-          const newPosition = findNextAvailablePosition(targetPosition + 2);
-          return prevCards.map(c => {
-            if (c.id === draggedId) {
-              return { ...c, position: targetPosition };
-            }
-            if (c.id === cardInNextPosition.id) {
-              return { ...c, position: newPosition };
-            }
-            return c;
-          });
-        }
-
-        return prevCards.map(c =>
-          c.id === draggedId ? { ...c, position: targetPosition } : c
-        );
-      }
-
-      // If both cards are expanded, swap their positions
-      if (draggedCard.width === 2 && expandedCardAtTarget) {
-        return prevCards.map(c => {
-          if (c.id === draggedId) {
-            return { ...c, position: expandedCardAtTarget.position };
-          }
-          if (c.id === expandedCardAtTarget.id) {
-            return { ...c, position: draggedCard.position };
-          }
-          return c;
-        });
-      }
-
-      // For single-width card or dropping onto expanded card
-      if (expandedCardAtTarget) {
-        const newExpandedPosition = findNextAvailableDoublePosition(0);
-        return prevCards.map(c => {
-          if (c.id === expandedCardAtTarget.id) {
-            return { ...c, position: newExpandedPosition };
-          }
-          if (c.id === draggedId) {
-            return { ...c, position: targetPosition };
-          }
-          return c;
-        });
-      }
-
-      // Handle regular card in target position
-      const cardInTarget = prevCards.find(c => c.position === targetPosition);
-      if (cardInTarget) {
+      // Check if target position is occupied
+      if (isPositionOccupied(targetPosition, draggedId)) {
         const newPosition = findNextAvailablePosition(targetPosition + 1);
-        return prevCards.map(c => {
-          if (c.id === draggedId) {
-            return { ...c, position: targetPosition };
-          }
-          if (c.id === cardInTarget.id) {
-            return { ...c, position: newPosition };
-          }
-          return c;
-        });
+        return prevCards.map(c =>
+          c.id === draggedId ? { ...c, position: newPosition } : c
+        );
       }
 
       // No card in target position
@@ -269,14 +167,7 @@ const DragDropGrid = () => {
     return (
       <div
         key={position}
-        className={relative ${
-          position % 2 === 0 ? 'col-start-1' : 'col-start-2'
-        } ${
-          Math.floor(position / 2) === 0 ? 'row-start-1' :
-          Math.floor(position / 2) === 1 ? 'row-start-2' : 'row-start-3'
-        } ${
-          card?.width === 2 ? 'col-span-2' : 'col-span-1'
-        } h-32 transition-all duration-200}
+        className={`relative col-start-${x + 1} row-start-${y + 1} ${card?.width === 2 ? 'col-span-2' : 'col-span-1'} h-32 transition-all duration-200`}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
@@ -287,9 +178,7 @@ const DragDropGrid = () => {
         {card && (
           <div
             draggable
-            className={absolute inset-0 m-2 rounded-lg bg-white shadow-lg 
-              border-2 border-slate-200 cursor-move hover:border-blue-400
-              ${card.width === 2 ? 'col-span-2' : ''}}
+            className={`absolute inset-0 m-2 rounded-lg bg-white shadow-lg border-2 border-slate-200 cursor-move hover:border-blue-400 ${card.width === 2 ? 'col-span-2' : ''}`}
             onDragStart={(e) => {
               e.dataTransfer.setData('cardId', card.id.toString());
               setIsDragging(true);
