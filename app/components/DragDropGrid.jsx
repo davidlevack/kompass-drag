@@ -89,6 +89,7 @@ const DragDropGrid = () => {
       const card = prevCards[cardIndex];
       
       if (card.width === 2) {
+        // Collapse the card if it is already expanded
         return prevCards.map(c =>
           c.id === cardId ? { ...c, width: 1 } : c
         );
@@ -99,23 +100,21 @@ const DragDropGrid = () => {
         card.position - 1 : 
         card.position + 1;
 
-      if (!isPositionOccupied(adjacentPosition)) {
-        // Move the card in the adjacent position if it exists
-        const updatedCards = prevCards.map(c => {
-          if (c.position === adjacentPosition && c.width === 1) {
-            const newPosition = findNextAvailablePosition(adjacentPosition + 1, c.id);
-            return { ...c, position: newPosition };
-          }
-          return c;
-        });
+      let updatedCards = [...prevCards];
 
-        // Set the expanded card's new position
-        return updatedCards.map(c =>
-          c.id === cardId ? { ...c, width: 2, position: isInRightColumn ? adjacentPosition : c.position } : c
+      // Move the adjacent card if it exists
+      const adjacentCard = updatedCards.find(c => c.position === adjacentPosition && c.width === 1);
+      if (adjacentCard) {
+        const newPosition = findNextAvailablePosition(adjacentPosition + 1, adjacentCard.id);
+        updatedCards = updatedCards.map(c =>
+          c.id === adjacentCard.id ? { ...c, position: newPosition } : c
         );
       }
 
-      return prevCards;
+      // Set the expanded card's new position
+      return updatedCards.map(c =>
+        c.id === cardId ? { ...c, width: 2, position: isInRightColumn ? adjacentPosition : c.position } : c
+      );
     });
   };
 
