@@ -69,7 +69,7 @@ const DragDropGrid = () => {
       if (card.id === excludeCardId) return false;
       if (card.width === 1) return card.position === position;
       return card.position === position || 
-             (card.position % 2 === 0 ? card.position + 1 === position : card.position - 1 === position);
+             (card.width === 2 && (card.position === position || card.position + 1 === position));
     });
   };
 
@@ -105,7 +105,10 @@ const DragDropGrid = () => {
         );
       }
 
-      return prevCards;
+      const newPosition = findNextAvailablePosition(card.position + 2);
+      return prevCards.map(c =>
+        c.id === cardId ? { ...c, width: 2, position: newPosition } : c
+      );
     });
   };
 
@@ -149,6 +152,7 @@ const DragDropGrid = () => {
   const handleDeleteDrop = (e) => {
     e.preventDefault();
     const draggedId = parseInt(e.dataTransfer.getData('cardId'));
+    if (!draggedId) return;
     setCards(prevCards => prevCards.filter(card => card.id !== draggedId));
   };
 
@@ -157,12 +161,11 @@ const DragDropGrid = () => {
     const card = cards.find(c => c.position === position);
     const isPartOfExpanded = cards.some(c => 
       c.width === 2 && (
-        (c.position % 2 === 0 && c.position + 1 === position) ||
-        (c.position % 2 === 1 && c.position - 1 === position)
+        c.position === position || c.position + 1 === position
       )
     );
 
-    if (isPartOfExpanded) return null;
+    if (isPartOfExpanded && (!card || card.position !== position)) return null;
 
     return (
       <div
@@ -172,7 +175,7 @@ const DragDropGrid = () => {
         onDrop={(e) => {
           e.preventDefault();
           const draggedId = parseInt(e.dataTransfer.getData('cardId'));
-          handleDrop(draggedId, position);
+          if (draggedId) handleDrop(draggedId, position);
         }}
       >
         {card && (
