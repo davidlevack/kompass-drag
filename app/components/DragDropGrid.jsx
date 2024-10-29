@@ -140,6 +140,7 @@ const DragDropGrid = () => {
       </div>
     </div>
   );
+
 };
 
 export default DragDropGrid;
