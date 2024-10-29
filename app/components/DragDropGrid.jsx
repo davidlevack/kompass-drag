@@ -7,10 +7,10 @@ import { v4 as uuidv4 } from 'uuid'; // Import UUID for unique IDs
 const DragDropGrid = () => {
   // Sidebar card types
   const [sourceCards] = useState([
-    { id: 1, title: 'Card 1' },
-    { id: 2, title: 'Card 2' },
-    { id: 3, title: 'Card 3' },
-    { id: 4, title: 'Card 4' }
+    { type: 'Card 1', title: 'Card 1' },
+    { type: 'Card 2', title: 'Card 2' },
+    { type: 'Card 3', title: 'Card 3' },
+    { type: 'Card 4', title: 'Card 4' }
   ]);
 
   // Staging area cards
@@ -33,7 +33,7 @@ const DragDropGrid = () => {
 
     setCards(prevCards => {
       // Check if the dragged item is a new card from the sidebar
-      const sourceCard = sourceCards.find(c => c.id.toString() === draggedId);
+      const sourceCard = sourceCards.find(c => c.type === draggedId);
 
       if (sourceCard) {
         // Create a new unique card instance
@@ -103,10 +103,10 @@ const DragDropGrid = () => {
         <div className="space-y-2">
           {sourceCards.map(card => (
             <Card 
-              key={card.id}
+              key={card.type}
               draggable
               onDragStart={(e) => {
-                e.dataTransfer.setData('cardId', card.id.toString());
+                e.dataTransfer.setData('cardId', card.type); // Store card type for identification
                 setIsDragging(true);
               }}
               onDragEnd={() => setIsDragging(false)}
@@ -140,7 +140,6 @@ const DragDropGrid = () => {
       </div>
     </div>
   );
-
 };
 
 export default DragDropGrid;
