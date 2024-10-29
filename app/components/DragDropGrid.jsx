@@ -339,7 +339,7 @@ const DragDropGrid = () => {
 
       <div className="flex-1 p-8 relative">
         <div className="grid grid-cols-2 gap-4 bg-gray-100 p-4 rounded-xl">
-          {[0, 1, 2, 3, 4, 5].map(position => renderPosition(position))}
+          {[0, 1, 2, 3, 4, 5,6,7,8,9].map(position => renderPosition(position))}
         </div>
 
         {isDragging && (
