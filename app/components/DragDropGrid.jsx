@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { v4 as uuidv4 } from 'uuid'; // Import UUID for unique IDs
+import { isEqual } from 'lodash';
 
 // Icons and other components remain the same...
 
 const DragDropGrid = () => {
   // Sidebar card types
   const [sourceCards] = useState([
-    { type: 'Card 1', title: 'Card 1' },
-    { type: 'Card 2', title: 'Card 2' },
-    { type: 'Card 3', title: 'Card 3' },
-    { type: 'Card 4', title: 'Card 4' }
+    { id: 1, title: 'Card 1' },
+    { id: 2, title: 'Card 2' },
+    { id: 3, title: 'Card 3' },
+    { id: 4, title: 'Card 4' }
   ]);
 
   // Staging area cards
@@ -32,8 +33,8 @@ const DragDropGrid = () => {
     if (!draggedId) return;
 
     setCards(prevCards => {
-      // Check if the dragged item is a new card from the sidebar
-      const sourceCard = sourceCards.find(c => c.type === draggedId);
+      // Check if this card is from the sidebar
+      const sourceCard = sourceCards.find(c => c.id === draggedId);
 
       if (sourceCard) {
         // Create a new unique card instance
@@ -103,10 +104,10 @@ const DragDropGrid = () => {
         <div className="space-y-2">
           {sourceCards.map(card => (
             <Card 
-              key={card.type}
+              key={card.id}
               draggable
               onDragStart={(e) => {
-                e.dataTransfer.setData('cardId', card.type); // Store card type for identification
+                e.dataTransfer.setData('cardId', card.id);
                 setIsDragging(true);
               }}
               onDragEnd={() => setIsDragging(false)}
