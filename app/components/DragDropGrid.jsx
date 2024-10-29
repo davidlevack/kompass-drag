@@ -109,7 +109,7 @@ const DragDropGrid = () => {
         );
       }
 
-      // Set the expanded card's new position
+      // Set the expanded card's new position, taking both slots
       return updatedCards.map(c =>
         c.id === cardId ? { ...c, width: 2, position: isInRightColumn ? adjacentPosition : c.position } : c
       );
